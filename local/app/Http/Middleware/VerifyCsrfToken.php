@@ -15,6 +15,7 @@ class VerifyCsrfToken extends BaseVerifier
         'api/payment/vib',
         'api/payment/acb',
         'api/payment/vcb',
-        'api/payment/agb'
+        'api/payment/agb',
+        'api/payment/refund'
     ];
 }

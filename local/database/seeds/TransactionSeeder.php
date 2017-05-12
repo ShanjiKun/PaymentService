@@ -11,12 +11,6 @@ class TransactionSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('transaction')->insert([
-        	'tranID' => 'sk'.time(),
-        	'cardID' => '11111111',
-        	'spID' => 'dsvn',
-        	'billID' => '1',
-        	'charges' => 100000
-        ]);
+        
     }
 }

@@ -19,6 +19,7 @@ class CreateTransactionTable extends Migration
             $table->string('cardID', 20);
             $table->string('spID', 10);
             $table->string('billID', 100);
+            $table->string('state', 1)->default('N'); //N: normal, R: refunded
             $table->foreign('cardID')->references('cardID')->on('card');
             $table->foreign('spID')->references('spID')->on('service_provider');
         });

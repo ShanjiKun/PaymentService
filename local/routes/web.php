@@ -51,9 +51,7 @@ Route::group(['prefix' => 'api/payment'], function(){
 
 		return '{"code": "0", "message": "success", "data": {"transactionID": "'.$transactionID.'"}}';
 	});
-});
 
-Route::group(['prefix' => 'api/payment'], function(){
 	Route::post('vcb', function(Request $request){
 
 		$spID = $request->spID;
@@ -87,9 +85,7 @@ Route::group(['prefix' => 'api/payment'], function(){
 
 		return '{"code": "0", "message": "success", "data": {"transactionID": "'.$transactionID.'"}}';
 	});
-});
 
-Route::group(['prefix' => 'api/payment'], function(){
 	Route::post('acb', function(Request $request){
 
 		$spID = $request->spID;
@@ -123,9 +119,7 @@ Route::group(['prefix' => 'api/payment'], function(){
 
 		return '{"code": "0", "message": "success", "data": {"transactionID": "'.$transactionID.'"}}';
 	});
-});
 
-Route::group(['prefix' => 'api/payment'], function(){
 	Route::post('agb', function(Request $request){
 
 		$spID = $request->spID;
@@ -159,5 +153,35 @@ Route::group(['prefix' => 'api/payment'], function(){
 
 		return '{"code": "0", "message": "success", "data": {"transactionID": "'.$transactionID.'"}}';
 	});
-});
 
+	Route::post('refund', function(Request $request){
+		$spID = $request->spID;
+		$token = $request->token;
+		$transactionID = $request->tranID;
+		$billID = $request->billID;
+
+		$res = DB::SELECT('SELECT spID FROM payment_service.service_provider WHERE spID = "'.$spID.'" AND token = "'.$token.'"');
+		if(count($res) == 0) return '{"code": "4", "message": "Token nhà cung cấp không đúng!", "data": {}}';
+
+		if(empty($spID) || empty($transactionID) || empty($billID)){
+			return '{"code": "1", "message": "Tham số lỗi!", "data": {}}';
+		}
+
+		$res = DB::SELECT('SELECT cardID, charges FROM payment_service.transaction WHERE tranID ="'.$transactionID.'" AND billID = "'.$billID.'"');
+		if(count($res) == 0) return '{"code": "5", "message": "Transaction ID hoặc bill ID không chính xác!", "data": {}}';
+
+		$states = DB::SELECT('SELECT state FROM payment_service.transaction WHERE tranID ="'.$transactionID.'" AND billID = "'.$billID.'"');
+		if($states[0]->state == 'R') return '{"code": "6", "message": "You refunded before", "data": {}}';
+
+		$cardID = $res[0]->cardID;
+		$charges = $res[0]->charges;
+
+		$res = DB::SELECT('SELECT balance FROM payment_service.card WHERE cardID = "'.$cardID.'"');
+		$newBalance = $charges + $res[0]->balance;
+
+		DB::SELECT('UPDATE payment_service.card SET balance = '.$newBalance.' WHERE cardID = "'.$cardID.'"');
+		DB::SELECT('UPDATE payment_service.transaction SET state = "R" WHERE tranID = "'.$transactionID.'"');
+
+		return '{"code": "0", "message": "success", "data": ""}';
+	});
+});
